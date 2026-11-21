@@ -111,7 +111,6 @@ def sanitize_filename(name: str) -> str:
     name = re.sub(r"[^\w\.\-]", "_", name)
     return name[:200] or "unnamed"
 
-
 # ============ STARTUP ============
 @app.on_event("startup")
 def startup():
@@ -120,14 +119,17 @@ def startup():
     c = conn.cursor()
     c.execute("SELECT COUNT(*) as n FROM officers")
     if c.fetchone()["n"] == 0:
+        import secrets
+        import string
+        
+        # Generate a secure random password for the initial admin
+        alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
+        admin_password = ''.join(secrets.choice(alphabet) for _ in range(14))
+        
         seed = [
-            ("admin1", "Admin@12345", "Admin Vikram Singh", "SystemAdmin", "HQ", "HQ", "SECRET"),
-            ("sp1", "Sp@12345678", "SP Anjali Mehta", "RegionalAdmin", "North", "North HQ", "SECRET"),
-            ("sho1", "Sho@12345678", "SHO Priya Sharma", "SHO", "Delhi", "Delhi Central", "SECRET"),
-            ("sho2", "Sho@12345678", "SHO Ravi Verma", "SHO", "Delhi", "Delhi East", "CONFIDENTIAL"),
-            ("investigator1", "Inv@12345678", "Inspector Rajesh Kumar", "Investigator", "Delhi", "Delhi Central", "CONFIDENTIAL"),
-            ("investigator2", "Inv@12345678", "SI Neha Gupta", "Investigator", "Delhi", "Delhi East", "RESTRICTED"),
+            ("admin1", admin_password, "Admin Vikram Singh", "SystemAdmin", "HQ", "HQ", "SECRET")
         ]
+        
         for u, p, n, r, j, st, cl in seed:
             c.execute(
                 """INSERT INTO officers 
@@ -136,6 +138,16 @@ def startup():
                 (u, hash_password(p), n, r, j, st, cl, datetime.utcnow().isoformat())
             )
         conn.commit()
+        
+        # Print the credentials to the console ONLY on the first run
+        print("\n" + "="*60)
+        print("🚨 FIRST RUN: DATABASE SEEDED 🚨")
+        print(f"Admin Username: admin1")
+        print(f"Admin Password: {admin_password}")
+        print("⚠️  SAVE THIS PASSWORD NOW. IT WILL NEVER BE SHOWN AGAIN.")
+        print("⚠️  LOG IN AND CREATE OTHER OFFICERS VIA THE API/UI.")
+        print("="*60 + "\n")
+        
     conn.close()
 
 
