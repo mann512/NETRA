@@ -7,11 +7,11 @@ import bcrypt
 # ---- SECRET KEY from environment ----
 SECRET_KEY = os.environ.get("NETRA_SECRET_KEY")
 if not SECRET_KEY:
-    warnings.warn(
-        "NETRA_SECRET_KEY not set! Using DEV fallback. "
-        "Set it before production: set NETRA_SECRET_KEY=your-64-char-random-string"
+    raise ValueError(
+        "CRITICAL ERROR: NETRA_SECRET_KEY environment variable is not set. "
+        "The application cannot start without a secure secret key. "
+        "Please set it in your .env file."
     )
-    SECRET_KEY = "dev-only-insecure-secret-do-not-use-in-production-1234567890abcdef"
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30  # Short-lived for security
